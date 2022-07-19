@@ -27,7 +27,7 @@ import {
 } from "../../utils/batch";
 import { hashV1PartitionKey } from "../../utils/hashing/v1";
 import { hashV2PartitionKey } from "../../utils/hashing/v2";
-import { recordDiagnostics } from "../../diagnostics/CosmosDiagnostics";
+import { CosmosException } from "../../diagnostics/CosmosException";
 
 /**
  * @hidden
@@ -271,7 +271,7 @@ export class Items {
 
     const err = {};
     if (!isResourceValid(body, err)) {
-      recordDiagnostics({"cosmos-diagnostics-create-item-response-error": err});
+      CosmosException.record({"cosmos-diagnostics-create-item-response-error": err});
       throw err;
     }
 
@@ -344,7 +344,7 @@ export class Items {
 
     const err = {};
     if (!isResourceValid(body, err)) {
-      recordDiagnostics({"cosmos-diagnostics-upsert-item-response-error": err});
+      CosmosException.record({"cosmos-diagnostics-upsert-item-response-error": err});
       throw err;
     }
 
@@ -462,12 +462,12 @@ export class Items {
             // and redo the batch request, however, 410 errors occur for unsupported
             // partition key types as well since we don't support them, so for now we throw
             if (err.code === 410) {
-              recordDiagnostics({"cosmos-diagnostics-item-builk-410-error": err.message});
+              CosmosException.record({"cosmos-diagnostics-item-builk-410-error": err.message});
               throw new Error(
                 "Partition key error. Either the partitions have split or an operation has an unsupported partitionKey type"
               );
             }
-            recordDiagnostics({"cosmos-diagnostics-bulk-request-error": err.message});
+            CosmosException.record({"cosmos-diagnostics-bulk-request-error": err.message});
             throw new Error(`Bulk request errored with: ${err.message}`);
           }
         })
